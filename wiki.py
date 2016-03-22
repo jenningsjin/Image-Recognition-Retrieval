@@ -1,6 +1,4 @@
 import pandas as pd
-import vislab
-import vislab.datasets
 import os
 import subprocess
 
