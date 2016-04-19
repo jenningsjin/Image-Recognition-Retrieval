@@ -5,13 +5,13 @@ Created on Mon Apr 18 19:13:15 2016
 @author: Xinghai
 """
 import numpy as np
-import theano
+#import theano
 import theano.tensor as T
-from itertools import product
+#from itertools import product
 
 import lasagne
 from lasagne.layers import Conv2DLayer as ConvLayer
-from lasagne.layers import InputLayer, DenseLayer, NonlinearityLayer
+from lasagne.layers import InputLayer, DenseLayer
 from lasagne.layers import Pool2DLayer as PoolLayer
 from lasagne.nonlinearities import softmax
 from lasagne.utils import floatX
@@ -77,8 +77,8 @@ def prep_image(im):
 
 net = {}
 IMAGE_W = 256
-net['input'] = InputLayer((1, 3, IMAGE_W, IMAGE_W))
-net['conv1_1'] = ConvLayer(net['input'], 64, 6, pad=1, flip_filters=False)
+net['input'] = InputLayer((1, 1, IMAGE_W, IMAGE_W))
+net['conv1_1'] = ConvLayer(net['input'], 64, 8, pad=1, flip_filters=False)
 net['output'] = DenseLayer(net['conv1_1'],  num_units=10, nonlinearity=softmax)
 
 photo = plt.imread('b.jpg')
