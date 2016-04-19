@@ -9,6 +9,9 @@ import numpy as np
 import theano.tensor as T
 #from itertools import product
 
+from scipy.spatial.distance import pdist
+from scipy.spatial.distance import cosine
+
 import lasagne
 from lasagne.layers import Conv2DLayer as ConvLayer
 from lasagne.layers import InputLayer, DenseLayer
@@ -82,15 +85,29 @@ net['conv1_1'] = ConvLayer(net['input'], 64, 8, pad=1, flip_filters=False)
 net['output'] = DenseLayer(net['conv1_1'],  num_units=10, nonlinearity=softmax)
 
 photo = plt.imread('b.jpg')
+photo1 = plt.imread('portrait1.jpg')
+photo2 = plt.imread('portrait2.jpg')
+
 rawim, photo = prep_image(photo)
 plt.imshow(rawim)
+
+rawim, photo1 = prep_image(photo1)
+rawim, photo2 = prep_image(photo2)
 
 layers = ['conv1_1']
 layers = {k: net[k] for k in layers}
 
 input_im_theano = T.tensor4()
-outputs = lasagne.layers.get_output(net['output'], input_im_theano, deterministic= True)
+outputs = lasagne.layers.get_output(net['conv1_1'], input_im_theano, deterministic= True)
 #plot_conv_weights(net['conv1_1'])
 
+def calSim(matA,matB):
+    n,_,_,_ = matA.shape
+    diff = np.empty(0)
+    for i in range(n):
+        np.append(diff,cosine(np.hstack(matA[i,0]),np.hstack(matB[i,0])))
+    diffSum =  np.sum(diff)
+    print diffSum
+    return diffSum
 
 
