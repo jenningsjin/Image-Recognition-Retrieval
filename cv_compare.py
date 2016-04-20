@@ -130,13 +130,14 @@ def main():
 		# sort the results
 		total_results = sorted([(v, k) for (k, v) in total_results.items()], reverse = False)	
 		results = sorted([(v, k) for (k, v) in results.items()], reverse = False)	
+		bagsults = sorted([(v, k) for (k, v) in bagsults.items()], reverse = False)	
 
 		# initialize the results figure
 		fig = plt.figure("Results: ")
 
 		# loop over the results
 		n = 0
-		for (i, (v, k)) in enumerate(total_results):
+		for (i, (v, k)) in enumerate(bagsults):
 			if n > 9:
 				break
 			n += 1
