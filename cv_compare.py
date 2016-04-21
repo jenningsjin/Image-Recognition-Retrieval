@@ -1,3 +1,12 @@
+'''
+EECS 486 Final Project: Image Retrieval of Similar Paintings
+Jennings Jin, Justin Kim, Grace Wu, Xinghai Zhang
+
+-When run, this program will read in all the images in the 'paintings/' folder
+-When it asks for an input, enter the full relative path with filename: ex. 'paintings/Impressionism4.jpg'
+-It will output ten images (including the query image) that are most similar to the query
+'''
+
 from scipy.stats import chisquare
 from shutil import copyfile
 import matplotlib.pyplot as plt
@@ -12,8 +21,9 @@ def main():
 	index = {}
 	#dictionary for holding the RGB images
 	images = {}
-	#dictionary for holding the bag of visual words information
+	#dictionary for holding the OBJ descriptors
 	bagdex = {}
+	#dictionary for holding the OBJ keypoints
 	bagdex_kp = {}
 	#dictionary for holding greyscale images
 	greyges = {}
@@ -28,10 +38,10 @@ def main():
 			hist = cv2.normalize(hist).flatten()
 			index[filename] = hist
 			
-			#bovw data
+			#OBJ feature descriptors data
 			image = cv2.imread(path + filename, cv2.CV_LOAD_IMAGE_GRAYSCALE)
 			greyges[filename] = image
-			orb = cv2.ORB(1000, 1.2)
+			orb = cv2.ORB(250, 1.2)
 			kp, des = orb.detectAndCompute(greyges[filename], None)
 			bagdex[filename] = des
 			bagdex_kp[filename] = kp
@@ -51,7 +61,7 @@ def main():
 		query_hist = cv2.calcHist([query_image], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
 		query_hist = cv2.normalize(query_hist).flatten()
 		index[query_filename] = query_hist
-		bagsults = {}		
+		results = {}
 
 		# Create ORB feature descriptor for query image
 		query_bagage = cv2.imread(query_filepath, cv2.CV_LOAD_IMAGE_GRAYSCALE)
@@ -59,12 +69,12 @@ def main():
 		query_kp, query_des = orb.detectAndCompute(greyges[query_filename], None)
 		bagdex[query_filename] = query_des
 		bagdex_kp[query_filename] = query_kp
-		results = {}
+		
+		bagsults = {}	
 		 
-		# initialize the results dictionary for histogram
+		# initialize the comparison method for histogram
 		methodName = "Hellinger"
 		method = cv2.cv.CV_COMP_BHATTACHARYYA
-		results = {}
 
 		for (k, hist) in index.items():
 			# compute the distance between the two histograms
@@ -72,43 +82,12 @@ def main():
 			d = cv2.compareHist(index[query_filename], hist, method)
 			results[k] = d
 
-		# initialize the results dictionary for bovw
-		FLANN_INDEX_LSH = 6
-		index_params= dict(algorithm = FLANN_INDEX_LSH,
-                   table_number = 6, # 12
-                   key_size = 12,     # 20
-                   multi_probe_level = 1) #2		
-		search_params = dict(checks=50)
-
 		for (k, des) in bagdex.items():
 			d = 0
-			"""
-			flann = cv2.FlannBasedMatcher(index_params, search_params)
-			matches  = flann.knnMatch(index[query_filename], des, k=2)
-			numMatches = 1
-			totalDistance = 0
-			matchesMask = [[0,0] for i in xrange(len(matches))]
-			
-
-			for i in range(0,500):
-				if len(matches[i]) == 2:
-					m = matches[i][0].distance
-					n = matches[i][1].distance
-					if m < 0.7 * n:
-						matchesMask[i] = [1, 0]
-						numMatches += 1
-
-			draw_params = dict(matchColor = (0, 255, 0),
-												singlePointColor = (255, 0, 0),
-												matchesMask = matchesMask,
-												flags = 0)
-			img3 = drawMatches(query_image, query_kp, images[query_filename], query_kp, matches)
-			plt.imshow(img3,),plt.show()			
-			"""
 			bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
 			matches = bf.match(bagdex[query_filename], des)
 			matches = sorted(matches, key=lambda val: val.distance)
-			#out = drawMatches(query_image, query_kp, images[k], index_kp[k], matches[:10])
+
 			for match in matches[:10]:
 				d += match.distance
 			bagsults[k] = d
@@ -146,18 +125,15 @@ def main():
 			ax.set_title("%s: %.2f" % (k, v))
 			plt.imshow(images[k])
 			plt.axis("off")
+
+			# show the matching lines drawn instead
+			#out = drawMatches(query_bagage, query_kp, greyges[k], bagdex_kp[k], matches[:10])
 			
 		#downloads the image into our own database
 		#copyfile(query_filepath, 'paintings/copy_' + query_filename)
 		 
-		# show the OpenCV methods
+		# show the results
 		plt.show()
-
-
-
-
-if __name__ == '__main__':
-	main()
 	
 def drawMatches(img1, kp1, img2, kp2, matches):
     """
@@ -238,3 +214,7 @@ def drawMatches(img1, kp1, img2, kp2, matches):
 
     # Also return the image if you'd like a copy
     return out
+
+
+if __name__ == '__main__':
+	main()
